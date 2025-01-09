@@ -1,0 +1,121 @@
+PARSER_BEGIN(SQLParser)
+package com.example.sqlgenerator.parser.generated;
+
+public class SQLParser {
+}
+PARSER_END(SQLParser)
+
+// Token definitions
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+TOKEN :
+{
+    < CREATE: "CREATE" >
+  | < TABLE: "TABLE" >
+  | < ALTER: "ALTER" >
+  | < DROP: "DROP" >
+  | < PRIMARY: "PRIMARY" >
+  | < KEY: "KEY" >
+  | < FOREIGN: "FOREIGN" >
+  | < REFERENCES: "REFERENCES" >
+  | < NOT: "NOT" >
+  | < NULL: "NULL" >
+  | < UNIQUE: "UNIQUE" >
+  | < INDEX: "INDEX" >
+  | < ON: "ON" >
+  | < INT: "INT" >
+  | < VARCHAR: "VARCHAR" >
+  | < IDENTIFIER: ["a"-"z","A"-"Z", "_"] (["a"-"z","A"-"Z","0"-"9","_"])* >
+  | < NUMBER: (["0"-"9"])+ >
+  | < LPAREN: "(" >
+  | < RPAREN: ")" >
+  | < COMMA: "," >
+  | < SEMICOLON: ";" >
+}
+
+void TableDefinition() :
+{
+    Token name;
+}
+{
+    <CREATE> <TABLE> name=<IDENTIFIER> 
+    <LPAREN>
+        TableElements()
+    <RPAREN>
+    <SEMICOLON>
+    (IndexDefinition())*
+}
+
+void TableElements() :
+{}
+{
+    ColumnDefinition() 
+    ( 
+        <COMMA> 
+        (ColumnDefinition() | ForeignKeyConstraint())
+    )*
+}
+
+void ColumnDefinition() :
+{
+    Token name;
+}
+{
+    name=<IDENTIFIER> 
+    DataType()
+    Constraints()
+}
+
+void DataType() :
+{}
+{
+    <INT> | 
+    <VARCHAR> <LPAREN> <NUMBER> <RPAREN>
+}
+
+void Constraints() :
+{}
+{
+    (
+        <NOT> <NULL> |
+        <PRIMARY> <KEY> |
+        <UNIQUE>
+    )*
+}
+
+void ForeignKeyConstraint() :
+{
+    Token columnName;
+    Token refTable;
+    Token refColumn;
+}
+{
+    <FOREIGN> <KEY> 
+    <LPAREN> columnName=<IDENTIFIER> <RPAREN>
+    <REFERENCES> refTable=<IDENTIFIER> 
+    <LPAREN> refColumn=<IDENTIFIER> <RPAREN>
+}
+
+void IndexDefinition() :
+{
+    Token name;
+    Token tableName;
+}
+{
+    <CREATE> [<UNIQUE>] <INDEX> name=<IDENTIFIER>
+    <ON> tableName=<IDENTIFIER>
+    <LPAREN> ColumnList() <RPAREN>
+    <SEMICOLON>
+}
+
+void ColumnList() :
+{}
+{
+    <IDENTIFIER> (<COMMA> <IDENTIFIER>)*
+} 
