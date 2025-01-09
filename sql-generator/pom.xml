@@ -74,6 +74,11 @@
 			<artifactId>jakarta.persistence-api</artifactId>
 			<version>3.1.0</version>
 		</dependency>
+		<dependency>
+			<groupId>net.java.dev.javacc</groupId>
+			<artifactId>javacc</artifactId>
+			<version>7.0.12</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -103,6 +108,45 @@
 						</exclude>
 					</excludes>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.helger.maven</groupId>
+				<artifactId>ph-javacc-maven-plugin</artifactId>
+				<version>4.1.5</version>
+				<executions>
+					<execution>
+						<id>javacc</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>javacc</goal>
+						</goals>
+						<configuration>
+							<jdkVersion>17</jdkVersion>
+							<javadocFriendlyComments>true</javadocFriendlyComments>
+							<packageName>com.example.sqlgenerator.parser.generated</packageName>
+							<sourceDirectory>${basedir}/src/main/javacc</sourceDirectory>
+							<outputDirectory>${basedir}/target/generated-sources/javacc</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>add-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${basedir}/target/generated-sources/javacc</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

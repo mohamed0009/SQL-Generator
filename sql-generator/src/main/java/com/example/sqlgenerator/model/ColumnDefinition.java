@@ -9,5 +9,7 @@ public class ColumnDefinition {
     private boolean isPrimaryKey;
     private boolean isNullable;
     private boolean isUnique;
+    private boolean isAutoIncrement;
     private String defaultValue;
+    private String reference; // For foreign key references
 }

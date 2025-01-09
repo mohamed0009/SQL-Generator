@@ -3,8 +3,14 @@ package com.example.sqlgenerator.service;
 import com.example.sqlgenerator.model.TableDefinition;
 import com.example.sqlgenerator.model.ColumnDefinition;
 import com.example.sqlgenerator.model.IndexDefinition;
+import com.example.sqlgenerator.model.ForeignKeyDefinition;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 public class SQLGeneratorService {
@@ -13,60 +19,64 @@ public class SQLGeneratorService {
         StringBuilder sql = new StringBuilder();
         sql.append("CREATE TABLE ").append(table.getTableName()).append(" (\n");
 
-        // Generate column definitions
-        for (int i = 0; i < table.getColumns().size(); i++) {
-            var column = table.getColumns().get(i);
-            sql.append("    ").append(column.getName())
-                    .append(" ").append(column.getDataType());
+        List<String> columnDefs = new ArrayList<>();
 
-            if (!column.isNullable()) {
-                sql.append(" NOT NULL");
+        // Add regular columns
+        for (ColumnDefinition column : table.getColumns()) {
+            StringBuilder columnDef = new StringBuilder();
+            columnDef.append("    ").append(column.getName()).append(" ");
+
+            // Handle data type
+            switch (column.getDataType().toLowerCase()) {
+                case "entier":
+                    columnDef.append("INT");
+                    break;
+                case "texte":
+                    columnDef.append("VARCHAR(255)");
+                    break;
+                case "date":
+                    columnDef.append("DATE");
+                    break;
+                default:
+                    columnDef.append(column.getDataType());
             }
 
-            if (column.isPrimaryKey()) {
-                sql.append(" PRIMARY KEY");
-            }
-
-            if (column.isUnique()) {
-                sql.append(" UNIQUE");
-            }
-
-            if (column.getDefaultValue() != null) {
-                sql.append(" DEFAULT ").append(column.getDefaultValue());
-            }
-
-            if (i < table.getColumns().size() - 1) {
-                sql.append(",");
-            }
-            sql.append("\n");
-        }
-
-        // Add foreign key constraints
-        if (table.getForeignKeys() != null && !table.getForeignKeys().isEmpty()) {
-            sql.append(",\n");
-            for (var fk : table.getForeignKeys()) {
-                sql.append("    FOREIGN KEY (").append(fk.getColumnName())
-                        .append(") REFERENCES ").append(fk.getReferenceTable())
-                        .append("(").append(fk.getReferenceColumn()).append("),\n");
-            }
-            sql.setLength(sql.length() - 2); // Remove last comma
-        }
-
-        sql.append("\n);");
-
-        // Generate indexes
-        if (table.getIndexes() != null) {
-            for (var index : table.getIndexes()) {
-                sql.append("\n\nCREATE ");
-                if (index.isUnique()) {
-                    sql.append("UNIQUE ");
+            // Handle primary key with auto increment
+            if (column.isPrimaryKey() && column.isAutoIncrement()) {
+                columnDef.append(" AUTO_INCREMENT PRIMARY KEY");
+            } else {
+                // Not null constraint
+                if (!column.isNullable()) {
+                    columnDef.append(" NOT NULL");
                 }
-                sql.append("INDEX ").append(index.getIndexName())
-                        .append(" ON ").append(table.getTableName())
-                        .append("(").append(String.join(", ", index.getColumnNames()))
-                        .append(");");
+
+                // Unique constraint
+                if (column.isUnique()) {
+                    columnDef.append(" UNIQUE");
+                }
+            }
+
+            // Default value for dates
+            if (column.getDefaultValue() != null &&
+                    column.getDataType().toLowerCase().equals("date")) {
+                columnDef.append(" DEFAULT CURRENT_TIMESTAMP");
+            }
+
+            columnDefs.add(columnDef.toString());
+        }
+
+        // Add foreign key constraints at the end
+        if (table.getForeignKeys() != null) {
+            for (ForeignKeyDefinition fk : table.getForeignKeys()) {
+                columnDefs.add(String.format("    FOREIGN KEY (%s) REFERENCES %s(%s)",
+                        fk.getColumnName(),
+                        fk.getReferenceTable(),
+                        fk.getReferenceColumn()));
             }
         }
+
+        sql.append(String.join(",\n", columnDefs));
+        sql.append("\n);\n");
 
         return sql.toString();
     }
