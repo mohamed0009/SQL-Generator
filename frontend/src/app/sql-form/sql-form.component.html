@@ -1,0 +1,136 @@
+<div class="container">
+  <div class="card">
+    <h2 class="text-2xl font-semibold mb-4">Create Table Structure</h2>
+
+    <form [formGroup]="sqlForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label class="form-label" for="tableName">Table Name</label>
+        <input
+          id="tableName"
+          class="form-control"
+          formControlName="tableName"
+          required
+          placeholder="Enter table name"
+        />
+      </div>
+
+      <div formArrayName="columns" class="space-y-4">
+        <h3 class="text-lg font-medium text-gray-700">Columns</h3>
+
+        @for (column of columns.controls; track $index) {
+        <div [formGroupName]="$index" class="card" [@columnAnimation]>
+          <div class="form-group">
+            <label class="form-label">Column Name</label>
+            <input class="form-control" formControlName="name" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Type</label>
+            <select class="form-control" formControlName="type" required>
+              <option value="entier">Integer</option>
+              <option value="texte">Text</option>
+              <option value="date">Date</option>
+            </select>
+          </div>
+
+          <div class="flex gap-4 flex-wrap">
+            <label class="checkbox-group">
+              <input type="checkbox" formControlName="primaryKey" />
+              <span>Primary Key</span>
+            </label>
+            <label class="checkbox-group">
+              <input type="checkbox" formControlName="autoIncrement" />
+              <span>Auto Increment</span>
+            </label>
+            <label class="checkbox-group">
+              <input type="checkbox" formControlName="required" />
+              <span>Required</span>
+            </label>
+            <label class="checkbox-group">
+              <input type="checkbox" formControlName="unique" />
+              <span>Unique</span>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">References (table.column)</label>
+            <input
+              class="form-control"
+              formControlName="reference"
+              placeholder="tablename.columnname"
+            />
+          </div>
+        </div>
+        }
+      </div>
+
+      <div class="flex justify-between items-center mt-6">
+        <div class="flex gap-2">
+          <input
+            type="file"
+            #fileInput
+            accept=".json"
+            (change)="importJson($event)"
+            hidden
+          />
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="fileInput.click()"
+          >
+            <i class="fas fa-upload"></i>
+            Import JSON
+          </button>
+        </div>
+
+        <div class="flex gap-2">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [disabled]="!sqlForm.valid || columns.length === 0"
+            (click)="exportJson()"
+          >
+            <i class="fas fa-download"></i>
+            Export JSON
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [disabled]="!generatedSQL"
+            (click)="exportSql()"
+          >
+            <i class="fas fa-code"></i>
+            Export SQL
+          </button>
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center mt-6">
+        <button type="button" class="btn btn-primary" (click)="addColumn()">
+          <i class="fas fa-plus"></i>
+          Add Column
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="!sqlForm.valid || columns.length === 0 || isLoading"
+        >
+          @if (isLoading) {
+          <div class="spinner"></div>
+          } @else {
+          <i class="fas fa-play"></i>
+          Generate SQL }
+        </button>
+      </div>
+
+      @if (columns.length === 0) {
+      <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        Please add at least one column
+      </div>
+      }
+    </form>
+  </div>
+
+  <app-sql-output [sql]="generatedSQL" [error]="error"></app-sql-output>
+</div>

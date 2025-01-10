@@ -1,0 +1,77 @@
+.sql-form {
+  max-width: 800px;
+  margin: 20px auto;
+
+  mat-card-title {
+    color: #1976d2;
+  }
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.columns-container {
+  margin: 20px 0;
+
+  h3 {
+    color: #1976d2;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+  }
+}
+
+.column-form {
+  margin-bottom: 20px;
+  border-left: 4px solid #1976d2;
+}
+
+.checkbox-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.file-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #f5f7fa;
+  border-radius: 4px;
+
+  .import-section,
+  .export-section {
+    display: flex;
+    gap: 10px;
+  }
+}
+
+.button-group {
+  display: flex;
+  gap: 15px;
+  margin: 20px 0;
+  justify-content: flex-end;
+}
+
+.warning-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+  background-color: #fff3e0;
+  color: #e65100;
+
+  mat-icon {
+    margin-right: 8px;
+  }
+}
+
+::ng-deep {
+  .mat-mdc-card-header-text {
+    margin: 0 !important;
+  }
+}

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
+import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/api/sql")
@@ -23,12 +24,17 @@ public class SQLGeneratorController {
     @Autowired
     private SQLGeneratorService sqlGeneratorService;
 
-    @PostMapping("/generate/simple")
-    public ResponseEntity<Object> generateSimpleSQL(@RequestBody TableRequest request) {
+    @PostMapping(value = "/generate/simple", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> generateSimpleSQL(@RequestBody TableRequest request) {
         try {
-            StringBuilder fullSql = new StringBuilder();
+            if (request.getTables() == null || request.getTables().isEmpty() ||
+                    request.getTables().get(0).getColumns() == null ||
+                    request.getTables().get(0).getColumns().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body("Error: No tables or columns provided");
+            }
 
-            // Generate SQL for each table
+            StringBuilder fullSql = new StringBuilder();
             for (TableDefinition table : request.getTables()) {
                 com.example.sqlgenerator.model.TableDefinition modelDef = convertTableToModel(table);
                 String sql = sqlGeneratorService.generateCreateTableSQL(modelDef);
@@ -37,7 +43,9 @@ public class SQLGeneratorController {
 
             return ResponseEntity.ok(fullSql.toString());
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new ErrorResponse("Error", e.getMessage()));
+            e.printStackTrace();
+            return ResponseEntity.badRequest()
+                    .body("Error: " + e.getMessage());
         }
     }
 
