@@ -231,4 +231,8 @@ export class SqlFormComponent {
       this.alertService.info('SQL copied to clipboard');
     });
   }
+
+  protected removeColumn(index: number): void {
+    this.columns.removeAt(index);
+  }
 }

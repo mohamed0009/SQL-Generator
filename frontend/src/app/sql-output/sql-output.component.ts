@@ -1,121 +1,187 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { AlertService } from '../services/alert.service';
-import { trigger, transition, style, animate } from '@angular/animations';
+declare var Prism: any;
 
 @Component({
   selector: 'app-sql-output',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSnackBarModule,
-  ],
+  imports: [CommonModule],
   template: `
-    <mat-card class="sql-output" *ngIf="sql || error" [@fadeSlide]>
-      <mat-card-header>
-        <mat-card-title>Generated SQL</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        @if (error) {
-        <div class="error-message" [@fadeSlide]>
-          <mat-icon color="warn">error</mat-icon>
-          {{ error }}
+    <div class="sql-output" *ngIf="sql || error">
+      <div class="card">
+        <div class="card-header">
+          <h3>Generated SQL</h3>
         </div>
-        } @if (sql) {
-        <div class="sql-container" [@fadeSlide]>
-          <pre><code>{{ sql }}</code></pre>
-          <button
-            mat-icon-button
-            color="primary"
-            (click)="copyToClipboard(sql); copyState = !copyState"
-            class="copy-button"
-            [@copyAnimation]="copyState"
-          >
-            <mat-icon>content_copy</mat-icon>
-          </button>
+        <div class="card-content">
+          @if (error) {
+          <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i>
+            {{ error }}
+          </div>
+          } @if (sql) {
+          <div class="sql-container">
+            <pre
+              class="line-numbers"
+            ><code [innerHTML]="highlightedSql" class="language-sql"></code></pre>
+            <button
+              class="copy-button"
+              (click)="copyToClipboard(sql)"
+              [class.copied]="isCopied"
+              [title]="isCopied ? 'Copied!' : 'Copy to clipboard'"
+            >
+              <i
+                class="fas"
+                [class.fa-copy]="!isCopied"
+                [class.fa-check]="isCopied"
+              ></i>
+              <span class="copy-tooltip">{{
+                isCopied ? 'Copied!' : 'Copy'
+              }}</span>
+            </button>
+          </div>
+          }
         </div>
-        }
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </div>
   `,
   styles: [
     `
       .sql-output {
-        margin-top: 20px;
+        margin-top: 2rem;
       }
 
-      .error-message {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #f44336;
-        margin-bottom: 15px;
+      .card {
+        background-color: var(--bg-primary);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .card-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background-color: var(--bg-secondary);
+
+        h3 {
+          margin: 0;
+          font-size: 1.1rem;
+          font-weight: 500;
+          color: var(--text-primary);
+        }
+      }
+
+      .card-content {
+        padding: 1.5rem;
       }
 
       .sql-container {
         position: relative;
-        background-color: #1e1e1e;
-        border-radius: 4px;
-        padding: 16px;
+        border-radius: var(--radius);
+        overflow: hidden;
+
+        pre {
+          margin: 0;
+          padding: 1rem !important;
+          background-color: #1e1e1e !important;
+          border-radius: var(--radius);
+          font-family: 'Fira Code', monospace;
+          font-size: 0.9rem;
+          line-height: 1.5;
+        }
+
+        .copy-button {
+          position: absolute;
+          top: 0.75rem;
+          right: 0.75rem;
+          padding: 0.5rem 0.75rem;
+          border-radius: var(--radius);
+          background-color: rgba(255, 255, 255, 0.1);
+          border: none;
+          color: #d4d4d4;
+          cursor: pointer;
+          transition: all var(--transition-fast);
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+
+          i {
+            font-size: 1rem;
+          }
+
+          .copy-tooltip {
+            font-size: 0.85rem;
+            font-weight: 500;
+          }
+
+          &:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: var(--scale-hover);
+          }
+
+          &:active {
+            transform: var(--scale-active);
+          }
+
+          &.copied {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+          }
+        }
       }
 
-      pre {
-        margin: 0;
-        white-space: pre-wrap;
-        font-family: 'Fira Code', monospace;
-        font-size: 14px;
-        color: #d4d4d4;
+      /* Dark mode styles */
+      @media (prefers-color-scheme: dark) {
+        .card-header {
+          background-color: var(--dark-bg-secondary);
+          border-bottom-color: var(--dark-border-color);
+
+          h3 {
+            color: var(--dark-text-primary);
+          }
+        }
       }
 
-      .copy-button {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background-color: rgba(255, 255, 255, 0.1);
+      @media (max-width: 640px) {
+        .copy-button .copy-tooltip {
+          display: none;
+        }
       }
     `,
   ],
-  animations: [
-    trigger('fadeSlide', [
-      transition(':enter', [
-        style({ transform: 'translateY(-20px)', opacity: 0 }),
-        animate(
-          '300ms ease-out',
-          style({ transform: 'translateY(0)', opacity: 1 })
-        ),
-      ]),
-      transition(':leave', [
-        animate(
-          '200ms ease-in',
-          style({ transform: 'translateY(-20px)', opacity: 0 })
-        ),
-      ]),
-    ]),
-    trigger('copyAnimation', [
-      transition('* => *', [
-        animate('200ms ease', style({ transform: 'scale(1.1)' })),
-        animate('200ms ease', style({ transform: 'scale(1)' })),
-      ]),
-    ]),
-  ],
 })
-export class SqlOutputComponent {
+export class SqlOutputComponent implements OnChanges {
   @Input() sql = '';
   @Input() error = '';
-  protected copyState = false;
+  highlightedSql = '';
+  isCopied = false;
 
-  constructor(private readonly alertService: AlertService) {}
+  constructor(private alertService: AlertService) {}
 
-  protected copyToClipboard(text: string): void {
-    navigator.clipboard.writeText(text).then(() => {
-      this.alertService.info('SQL copied to clipboard');
-    });
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['sql'] && this.sql) {
+      this.highlightedSql = Prism.highlight(
+        this.sql,
+        Prism.languages.sql,
+        'sql'
+      );
+    }
+  }
+
+  copyToClipboard(text: string): void {
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        this.isCopied = true;
+        this.alertService.success('SQL copied to clipboard');
+
+        // Reset the copied state after 2 seconds
+        setTimeout(() => {
+          this.isCopied = false;
+        }, 2000);
+      })
+      .catch(() => {
+        this.alertService.error('Failed to copy SQL');
+      });
   }
 }

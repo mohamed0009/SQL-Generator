@@ -1,18 +1,16 @@
 import { Injectable } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { BehaviorSubject } from 'rxjs';
-
-export interface Alert {
-  type: 'success' | 'error' | 'info' | 'warning';
-  message: string;
-}
+import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AlertService {
-  private alertSubject = new BehaviorSubject<Alert | null>(null);
-  alert$ = this.alertSubject.asObservable();
+  private config: MatSnackBarConfig = {
+    duration: 3000,
+    horizontalPosition: 'right',
+    verticalPosition: 'top',
+    panelClass: ['compact-snackbar'],
+  };
 
   constructor(private snackBar: MatSnackBar) {}
 
@@ -34,15 +32,22 @@ export class AlertService {
 
   private showSnackbar(
     message: string,
-    type: Alert['type'],
+    type: 'success' | 'error' | 'info' | 'warning',
     duration: number
   ): void {
-    const panelClass = `alert-${type}`;
-    this.snackBar.open(message, 'Close', {
+    const isDarkMode = window.matchMedia(
+      '(prefers-color-scheme: dark)'
+    ).matches;
+    const config = {
+      ...this.config,
       duration,
-      horizontalPosition: 'end',
-      verticalPosition: 'top',
-      panelClass: [panelClass],
-    });
+      panelClass: [
+        `alert-${type}`,
+        isDarkMode ? 'dark-theme' : 'light-theme',
+        'compact-snackbar',
+      ],
+    };
+
+    this.snackBar.open(message, 'Close', config);
   }
 }

@@ -19,6 +19,19 @@
 
         @for (column of columns.controls; track $index) {
         <div [formGroupName]="$index" class="card" [@columnAnimation]>
+          <div class="column-header">
+            <h4 class="column-title">Column {{ $index + 1 }}</h4>
+            <button
+              type="button"
+              class="remove-column-btn"
+              (click)="removeColumn($index)"
+              title="Remove column"
+            >
+              <i class="fas fa-trash"></i>
+              <span>Remove</span>
+            </button>
+          </div>
+
           <div class="form-group">
             <label class="form-label">Column Name</label>
             <input class="form-control" formControlName="name" required />
@@ -64,63 +77,67 @@
         }
       </div>
 
-      <div class="flex justify-between items-center mt-6">
-        <div class="flex gap-2">
-          <input
-            type="file"
-            #fileInput
-            accept=".json"
-            (change)="importJson($event)"
-            hidden
-          />
-          <button
-            type="button"
-            class="btn btn-secondary"
-            (click)="fileInput.click()"
-          >
-            <i class="fas fa-upload"></i>
-            Import JSON
-          </button>
-        </div>
+      <div class="border-t mt-8 py-4">
+        <div class="button-group">
+          <div class="action-buttons">
+            <input
+              type="file"
+              #fileInput
+              accept=".json"
+              (change)="importJson($event)"
+              hidden
+            />
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="fileInput.click()"
+            >
+              <i class="fas fa-upload"></i>
+              Import JSON
+            </button>
+          </div>
 
-        <div class="flex gap-2">
-          <button
-            type="button"
-            class="btn btn-secondary"
-            [disabled]="!sqlForm.valid || columns.length === 0"
-            (click)="exportJson()"
-          >
-            <i class="fas fa-download"></i>
-            Export JSON
-          </button>
-          <button
-            type="button"
-            class="btn btn-secondary"
-            [disabled]="!generatedSQL"
-            (click)="exportSql()"
-          >
-            <i class="fas fa-code"></i>
-            Export SQL
-          </button>
+          <div class="action-buttons">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              [disabled]="!sqlForm.valid || columns.length === 0"
+              (click)="exportJson()"
+            >
+              <i class="fas fa-download"></i>
+              Export JSON
+            </button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              [disabled]="!generatedSQL"
+              (click)="exportSql()"
+            >
+              <i class="fas fa-code"></i>
+              Export SQL
+            </button>
+          </div>
         </div>
       </div>
 
-      <div class="flex justify-between items-center mt-6">
-        <button type="button" class="btn btn-primary" (click)="addColumn()">
-          <i class="fas fa-plus"></i>
-          Add Column
-        </button>
-        <button
-          type="submit"
-          class="btn btn-primary"
-          [disabled]="!sqlForm.valid || columns.length === 0 || isLoading"
-        >
-          @if (isLoading) {
-          <div class="spinner"></div>
-          } @else {
-          <i class="fas fa-play"></i>
-          Generate SQL }
-        </button>
+      <div class="border-t py-4">
+        <div class="button-group">
+          <button type="button" class="btn btn-primary" (click)="addColumn()">
+            <i class="fas fa-plus"></i>
+            Add Column
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="!sqlForm.valid || columns.length === 0 || isLoading"
+          >
+            @if (isLoading) {
+            <div class="spinner"></div>
+            } @else {
+            <i class="fas fa-play"></i>
+            Generate SQL }
+          </button>
+        </div>
       </div>
 
       @if (columns.length === 0) {
