@@ -1109,3 +1109,95 @@ pre[class*="language-sql"] {
 .line-numbers-rows > span:before {
   color: #858585;
 }
+
+/* History controls */
+.history-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  .btn-icon {
+    padding: 0.5rem;
+    border-radius: 50%;
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+
+    &:hover:not(:disabled) {
+      background-color: var(--bg-primary);
+      color: var(--primary-color);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+/* Template buttons */
+.template-buttons {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+
+  .btn-template {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+
+    &:hover {
+      background-color: var(--bg-secondary);
+      color: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+
+    i {
+      font-size: 0.875rem;
+    }
+  }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .btn-template {
+    background-color: var(--dark-bg-secondary);
+    border-color: var(--dark-border-color);
+    color: var(--dark-text-secondary);
+
+    &:hover {
+      background-color: var(--dark-bg-primary);
+      color: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+  }
+}
+
+/* Page header styles */
+.page-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding: 2rem 0;
+  background: linear-gradient(135deg, #4f46e5, #f59e0b);
+  border-radius: var(--radius);
+  color: white;
+
+  .title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(to right, #ffffff, #e0e7ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .subtitle {
+    font-size: 1.125rem;
+    opacity: 0.95;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+}

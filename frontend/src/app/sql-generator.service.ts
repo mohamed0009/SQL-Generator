@@ -1,26 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, catchError, throwError, map } from 'rxjs';
-
-export interface Column {
-  name: string;
-  type: string;
-  primaryKey: boolean;
-  autoIncrement: boolean;
-  required: boolean;
-  unique: boolean;
-  defaultValue?: string;
-  reference?: string;
-}
-
-export interface Table {
-  name: string;
-  columns: Column[];
-}
-
-export interface TableRequest {
-  tables: Table[];
-}
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { Table, SQLDialect, ExportFormat } from './models/sql.models';
 
 @Injectable({
   providedIn: 'root',
@@ -30,35 +12,107 @@ export class SqlGeneratorService {
 
   constructor(private http: HttpClient) {}
 
-  generateSQL(request: TableRequest): Observable<string> {
-    console.log('Sending request:', request);
+  generateSQL(
+    tables: Table[],
+    dialect: SQLDialect = 'MySQL'
+  ): Observable<string> {
     return this.http
-      .post(`${this.apiUrl}/generate/simple`, request, {
-        responseType: 'text', // Explicitly request text response
-      })
-      .pipe(
-        catchError((error: HttpErrorResponse) => {
-          console.error('Error:', error);
-          return throwError(
-            () => error.error?.message || 'Failed to generate SQL'
-          );
-        })
-      );
+      .post<string>(
+        `${this.apiUrl}/generate`,
+        { tables, dialect },
+        {
+          responseType: 'text' as 'json',
+        }
+      )
+      .pipe(catchError(this.handleError));
+  }
+
+  exportAs(tables: Table[], format: ExportFormat): string {
+    switch (format) {
+      case 'TypeScript':
+        return this.generateTypeScript(tables);
+      case 'Java Entity':
+        return this.generateJavaEntity(tables);
+      case 'JSON':
+        return JSON.stringify(tables, null, 2);
+      default:
+        return '';
+    }
+  }
+
+  private generateTypeScript(tables: Table[]): string {
+    let output = '';
+    tables.forEach((table) => {
+      output += `interface ${this.pascalCase(table.name)} {\n`;
+      table.columns.forEach((column) => {
+        const type = this.mapSqlTypeToTs(column.type);
+        output += `  ${column.name}${column.required ? '' : '?'}: ${type};\n`;
+      });
+      output += '}\n\n';
+    });
+    return output;
+  }
+
+  private generateJavaEntity(tables: Table[]): string {
+    let output = '';
+    tables.forEach((table) => {
+      output += `@Entity\n@Table(name = "${table.name}")\n`;
+      output += `public class ${this.pascalCase(table.name)} {\n\n`;
+      table.columns.forEach((column) => {
+        if (column.primaryKey) {
+          output += '  @Id\n';
+        }
+        if (column.autoIncrement) {
+          output += '  @GeneratedValue(strategy = GenerationType.IDENTITY)\n';
+        }
+        const type = this.mapSqlTypeToJava(column.type);
+        output += `  private ${type} ${column.name};\n\n`;
+      });
+      output += '}\n\n';
+    });
+    return output;
   }
 
   private handleError(error: HttpErrorResponse) {
     let errorMessage = 'An error occurred';
     if (error.error instanceof ErrorEvent) {
-      // Client-side error
       errorMessage = `Error: ${error.error.message}`;
-    } else if (error.status === 0) {
-      // Network error
-      errorMessage =
-        'Cannot connect to server. Please make sure the backend is running.';
     } else {
-      // Backend error
       errorMessage = `Server returned code ${error.status}, error: ${error.error}`;
     }
     return throwError(() => errorMessage);
+  }
+
+  private pascalCase(str: string): string {
+    return str
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join('');
+  }
+
+  private mapSqlTypeToTs(sqlType: string): string {
+    switch (sqlType.toLowerCase()) {
+      case 'entier':
+        return 'number';
+      case 'texte':
+        return 'string';
+      case 'date':
+        return 'Date';
+      default:
+        return 'any';
+    }
+  }
+
+  private mapSqlTypeToJava(sqlType: string): string {
+    switch (sqlType.toLowerCase()) {
+      case 'entier':
+        return 'Integer';
+      case 'texte':
+        return 'String';
+      case 'date':
+        return 'LocalDateTime';
+      default:
+        return 'Object';
+    }
   }
 }

@@ -1,6 +1,6 @@
 package com.example.sqlgenerator.model;
 
-public class ColumnDefinition {
+public class Column {
     private String name;
     private String type;
     private boolean primaryKey;
@@ -9,11 +9,15 @@ public class ColumnDefinition {
     private boolean unique;
     private String defaultValue;
 
+    // Getters and setters
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Column name cannot be null or empty");
+        }
         this.name = name;
     }
 
@@ -22,6 +26,9 @@ public class ColumnDefinition {
     }
 
     public void setType(String type) {
+        if (type == null || type.trim().isEmpty()) {
+            throw new IllegalArgumentException("Type cannot be null or empty");
+        }
         this.type = type;
     }
 

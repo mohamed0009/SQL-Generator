@@ -1,7 +1,10 @@
 <div class="container">
-  <div class="card">
-    <h2 class="text-2xl font-semibold mb-4">Create Table Structure</h2>
+  <div class="page-header">
+    <h1 class="title">SQL Generator</h1>
+    <p class="subtitle">Generate SQL tables with a simple form interface</p>
+  </div>
 
+  <div class="card">
     <form [formGroup]="sqlForm" (ngSubmit)="onSubmit()">
       <div class="form-group">
         <label class="form-label" for="tableName">Table Name</label>
@@ -12,6 +15,67 @@
           required
           placeholder="Enter table name"
         />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="dialect">SQL Dialect</label>
+        <select id="dialect" class="form-control" formControlName="dialect">
+          <option value="MySQL">MySQL</option>
+          <option value="PostgreSQL">PostgreSQL</option>
+          <option value="SQLite">SQLite</option>
+          <option value="SQL Server">SQL Server</option>
+        </select>
+      </div>
+
+      <div class="history-controls">
+        <button
+          type="button"
+          class="btn btn-icon"
+          (click)="undo()"
+          [disabled]="!(canUndo$ | async)"
+          title="Undo"
+        >
+          <i class="fas fa-undo"></i>
+        </button>
+        <button
+          type="button"
+          class="btn btn-icon"
+          (click)="redo()"
+          [disabled]="!(canRedo$ | async)"
+          title="Redo"
+        >
+          <i class="fas fa-redo"></i>
+        </button>
+      </div>
+
+      <div class="template-buttons">
+        <button
+          type="button"
+          class="btn btn-template"
+          (click)="addTemplateColumn('id')"
+          title="Add ID column"
+        >
+          <i class="fas fa-key"></i>
+          Add ID
+        </button>
+        <button
+          type="button"
+          class="btn btn-template"
+          (click)="addTemplateColumn('timestamp')"
+          title="Add Timestamp column"
+        >
+          <i class="fas fa-clock"></i>
+          Add Timestamp
+        </button>
+        <button
+          type="button"
+          class="btn btn-template"
+          (click)="addTemplateColumn('foreignKey')"
+          title="Add Foreign Key"
+        >
+          <i class="fas fa-link"></i>
+          Add Foreign Key
+        </button>
       </div>
 
       <div formArrayName="columns" class="space-y-4">

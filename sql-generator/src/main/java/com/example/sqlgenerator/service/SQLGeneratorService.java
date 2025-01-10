@@ -27,7 +27,7 @@ public class SQLGeneratorService {
             columnDef.append("    ").append(column.getName()).append(" ");
 
             // Handle data type
-            switch (column.getDataType().toLowerCase()) {
+            switch (column.getType().toLowerCase()) {
                 case "entier":
                     columnDef.append("INT");
                     break;
@@ -38,7 +38,7 @@ public class SQLGeneratorService {
                     columnDef.append("DATE");
                     break;
                 default:
-                    columnDef.append(column.getDataType());
+                    columnDef.append(column.getType());
             }
 
             // Handle primary key with auto increment
@@ -58,7 +58,7 @@ public class SQLGeneratorService {
 
             // Default value for dates
             if (column.getDefaultValue() != null &&
-                    column.getDataType().toLowerCase().equals("date")) {
+                    column.getType().toLowerCase().equals("date")) {
                 columnDef.append(" DEFAULT CURRENT_TIMESTAMP");
             }
 
@@ -88,7 +88,7 @@ public class SQLGeneratorService {
         for (int i = 0; i < columnsToAdd.size(); i++) {
             var column = columnsToAdd.get(i);
             sql.append("ADD COLUMN ").append(column.getName())
-                    .append(" ").append(column.getDataType());
+                    .append(" ").append(column.getType());
 
             if (!column.isNullable()) {
                 sql.append(" NOT NULL");

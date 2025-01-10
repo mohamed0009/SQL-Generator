@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
@@ -7,7 +7,7 @@ import {
   FormArray,
   Validators,
 } from '@angular/forms';
-import { SqlGeneratorService, TableRequest } from '../sql-generator.service';
+import { SqlGeneratorService } from '../sql-generator.service';
 import { SqlOutputComponent } from '../sql-output/sql-output.component';
 import { saveAs } from 'file-saver';
 import { MatInputModule } from '@angular/material/input';
@@ -31,6 +31,9 @@ import {
 } from '@angular/animations';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRippleModule } from '@angular/material/core';
+import { HistoryService } from '../services/history.service';
+import { Table, columnTemplates, SQLDialect } from '../models/sql.models';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-sql-form',
@@ -94,15 +97,30 @@ export class SqlFormComponent {
   protected error = '';
   protected isLoading = false;
 
+  private readonly _canUndo$: Observable<boolean>;
+  private readonly _canRedo$: Observable<boolean>;
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly sqlService: SqlGeneratorService,
-    private readonly alertService: AlertService
+    private readonly alertService: AlertService,
+    private readonly historyService: HistoryService
   ) {
     this.sqlForm = this.fb.group({
       tableName: ['', Validators.required],
+      dialect: ['MySQL', Validators.required],
       columns: this.fb.array([]),
     });
+
+    this._canUndo$ = this.historyService.canUndo$;
+    this._canRedo$ = this.historyService.canRedo$;
+  }
+
+  get canUndo$() {
+    return this._canUndo$;
+  }
+  get canRedo$() {
+    return this._canRedo$;
   }
 
   protected get columns(): FormArray {
@@ -121,34 +139,32 @@ export class SqlFormComponent {
       reference: [''],
     });
     this.columns.push(columnGroup);
+    this.trackChange();
   }
 
   protected onSubmit(): void {
     if (this.sqlForm.valid && this.columns.length > 0) {
-      console.log('Form data:', this.sqlForm.value); // Debug log
-      const request: TableRequest = {
-        tables: [
-          {
-            name: this.sqlForm.get('tableName')?.value,
-            columns: this.columns.value,
-          },
-        ],
-      };
+      const tables: Table[] = [
+        {
+          name: this.sqlForm.get('tableName')?.value,
+          columns: this.columns.value,
+        },
+      ];
+      const dialect: SQLDialect = this.sqlForm.get('dialect')?.value;
 
       this.isLoading = true;
-      this.sqlService.generateSQL(request).subscribe({
+      this.error = '';
+      this.generatedSQL = '';
+
+      this.sqlService.generateSQL(tables, dialect).subscribe({
         next: (response) => {
-          console.log('Response:', response); // Debug log
           this.generatedSQL = response;
-          this.error = '';
           this.alertService.success('SQL generated successfully');
           this.isLoading = false;
         },
         error: (error) => {
-          console.error('Error:', error); // Debug log
           this.error =
             error.message || 'An error occurred while generating SQL';
-          this.generatedSQL = '';
           this.alertService.error(this.error);
           this.isLoading = false;
         },
@@ -156,7 +172,6 @@ export class SqlFormComponent {
     } else {
       this.error =
         'Please add at least one column and fill all required fields';
-      this.generatedSQL = '';
       this.alertService.warning(this.error);
     }
   }
@@ -234,5 +249,72 @@ export class SqlFormComponent {
 
   protected removeColumn(index: number): void {
     this.columns.removeAt(index);
+    this.trackChange();
+  }
+
+  protected undo(): void {
+    const previousState = this.historyService.undo();
+    if (previousState) {
+      this.loadState(previousState);
+    }
+  }
+
+  protected redo(): void {
+    const nextState = this.historyService.redo();
+    if (nextState) {
+      this.loadState(nextState);
+    }
+  }
+
+  private loadState(tables: Table[]): void {
+    // Clear existing form
+    while (this.columns.length) {
+      this.columns.removeAt(0);
+    }
+
+    // Load the state
+    const table = tables[0]; // For now, we're only handling one table
+    this.sqlForm.patchValue({ tableName: table.name });
+
+    table.columns.forEach((col) => {
+      this.columns.push(
+        this.fb.group({
+          name: [col.name, Validators.required],
+          type: [col.type, Validators.required],
+          primaryKey: [col.primaryKey],
+          autoIncrement: [col.autoIncrement],
+          required: [col.required],
+          unique: [col.unique],
+          defaultValue: [col.defaultValue || ''],
+          reference: [col.reference || ''],
+        })
+      );
+    });
+  }
+
+  private trackChange(): void {
+    const currentState: Table[] = [
+      {
+        name: this.sqlForm.get('tableName')?.value,
+        columns: this.columns.value,
+      },
+    ];
+    this.historyService.push(currentState);
+  }
+
+  protected addTemplateColumn(type: keyof typeof columnTemplates): void {
+    const template = columnTemplates[type];
+    const columnGroup = this.fb.group({
+      name: [template.name, Validators.required],
+      type: [template.type, Validators.required],
+      primaryKey: [template.primaryKey],
+      autoIncrement: [template.autoIncrement],
+      required: [template.required],
+      unique: [template.unique],
+      defaultValue: [template.defaultValue || ''],
+      reference: [''],
+    });
+    this.columns.push(columnGroup);
+    this.trackChange();
   }
 }
