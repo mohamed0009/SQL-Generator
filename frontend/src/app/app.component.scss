@@ -1,8 +1,8 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding-bottom: 40px;
 }
 
 header {
@@ -39,7 +39,36 @@ header {
 }
 
 main {
+  flex: 1;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
+  width: 100%;
+}
+
+footer {
+  text-align: center;
+  padding: 2rem;
+  background-color: var(--bg-primary);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  margin-top: auto;
+
+  p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+  }
+
+  .credits {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  footer {
+    background-color: var(--dark-bg-secondary);
+    border-color: var(--dark-border-color);
+  }
 }
