@@ -22,7 +22,7 @@ declare var Prism: any;
   ],
   animations: [fadeInUp, slideInOut],
   template: `
-    <mat-card class="sql-output-card" *ngIf="sql" @slideInOut>
+    <mat-card class="sql-output-card sql-syntax" *ngIf="sql" @slideInOut>
       <mat-card-header>
         <mat-card-title>Generated SQL</mat-card-title>
         <div class="header-actions">
@@ -53,29 +53,33 @@ declare var Prism: any;
     `
       .sql-output-card {
         margin-top: 2rem;
-        background: #1e1e1e;
-        color: #d4d4d4;
+        background: var(--sql-background);
+        color: var(--sql-foreground);
         border-radius: 8px;
         overflow: hidden;
+        border: 1px solid rgba(78, 201, 176, 0.2);
       }
 
       mat-card-header {
-        background: #2d2d2d;
+        background: rgba(45, 45, 45, 0.7);
         padding: 1rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        border-bottom: 1px solid rgba(78, 201, 176, 0.2);
       }
 
       .header-actions {
         display: flex;
-        gap: 0.5rem;
+        gap: 0.75rem;
+        margin-right: -0.5rem;
       }
 
       mat-card-title {
-        color: #fff;
+        color: var(--sql-type);
         margin: 0;
         font-size: 1.1rem;
+        font-weight: 500;
       }
 
       mat-card-content {
@@ -86,9 +90,9 @@ declare var Prism: any;
       .sql-code {
         margin: 0 !important;
         padding: 1rem !important;
-        background: #1e1e1e !important;
+        background: var(--sql-background) !important;
         border-radius: 4px;
-        font-family: 'Fira Code', 'Consolas', monospace !important;
+        font-family: 'Fira Code', monospace !important;
         font-size: 0.9rem !important;
         line-height: 1.5 !important;
         overflow-x: auto;
@@ -96,8 +100,12 @@ declare var Prism: any;
 
       /* Prism.js Line Numbers */
       .line-numbers .line-numbers-rows {
-        border-right: 1px solid #404040 !important;
+        border-right: 1px solid rgba(78, 201, 176, 0.2) !important;
         padding: 1rem 0;
+
+        > span::before {
+          color: var(--sql-line-number) !important;
+        }
       }
 
       /* Scrollbar Styling */
@@ -107,50 +115,92 @@ declare var Prism: any;
       }
 
       .sql-code::-webkit-scrollbar-track {
-        background: #1e1e1e;
+        background: var(--sql-background);
       }
 
       .sql-code::-webkit-scrollbar-thumb {
-        background: #424242;
+        background: rgba(78, 201, 176, 0.2);
         border-radius: 4px;
       }
 
       .sql-code::-webkit-scrollbar-thumb:hover {
-        background: #4f4f4f;
+        background: rgba(78, 201, 176, 0.3);
       }
 
-      /* Button Styling */
+      /* Enhanced Button Styling */
       button[mat-icon-button] {
-        color: #d4d4d4;
+        color: var(--sql-foreground);
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: rgba(78, 201, 176, 0.1);
+        border: 1px solid rgba(78, 201, 176, 0.2);
+        width: 36px;
+        height: 36px;
+        line-height: 36px;
+
+        &:hover {
+          color: var(--sql-type);
+          background: rgba(78, 201, 176, 0.15);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+          &::after {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        &:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        &::after {
+          content: '';
+          position: absolute;
+          top: -2px;
+          left: -2px;
+          right: -2px;
+          bottom: -2px;
+          border: 2px solid var(--sql-type);
+          border-radius: 50%;
+          opacity: 0;
+          transform: scale(0.8);
+          transition: all 0.3s ease;
+        }
+
+        mat-icon {
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+          transition: transform 0.3s ease;
+        }
+
+        &:hover mat-icon {
+          transform: scale(1.1);
+        }
       }
 
-      button[mat-icon-button]:hover {
-        color: #fff;
-        background: rgba(255, 255, 255, 0.1);
+      /* Custom tooltip styling */
+      ::ng-deep {
+        .mat-tooltip {
+          background: var(--sql-background);
+          color: var(--sql-type);
+          font-size: 12px;
+          padding: 8px 12px;
+          border: 1px solid rgba(78, 201, 176, 0.2);
+          border-radius: 4px;
+        }
       }
 
-      /* Token colors for SQL syntax */
-      :host ::ng-deep {
-        .token.keyword {
-          color: #569cd6 !important;
-        }
-        .token.function {
-          color: #dcdcaa !important;
-        }
-        .token.string {
-          color: #ce9178 !important;
-        }
-        .token.number {
-          color: #b5cea8 !important;
-        }
-        .token.operator {
-          color: #d4d4d4 !important;
-        }
-        .token.punctuation {
-          color: #d4d4d4 !important;
-        }
-        .token.comment {
-          color: #6a9955 !important;
+      /* Success Snackbar styling */
+      ::ng-deep .success-snackbar {
+        background: var(--sql-background);
+        color: var(--sql-type);
+        border-left: 4px solid var(--sql-type);
+
+        .mat-simple-snackbar-action {
+          color: var(--sql-keyword);
         }
       }
     `,
