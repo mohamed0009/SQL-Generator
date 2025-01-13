@@ -12,14 +12,16 @@ import { FooterComponent } from './components/footer/footer.component';
   animations: [fadeIn, fadeInUp],
   template: `
     <div class="app-container sql-syntax" @fadeIn>
+      <div class="background-container">
+        <div class="app-decoration primary"></div>
+        <div class="app-decoration secondary"></div>
+        <div class="app-pattern"></div>
+      </div>
       <app-header></app-header>
       <main @fadeInUp class="sql-card">
         <app-sql-form></app-sql-form>
       </main>
       <app-footer></app-footer>
-      <div class="app-decoration primary"></div>
-      <div class="app-decoration secondary"></div>
-      <div class="app-pattern"></div>
     </div>
   `,
   styles: [
@@ -38,9 +40,19 @@ import { FooterComponent } from './components/footer/footer.component';
         display: flex;
         flex-direction: column;
         color: var(--sql-foreground);
-        transition: background-color 0.3s ease, color 0.3s ease;
+        transition: all 0.3s ease;
         position: relative;
         z-index: 1;
+      }
+
+      .background-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 0;
+        overflow: hidden;
       }
 
       main {
@@ -59,9 +71,8 @@ import { FooterComponent } from './components/footer/footer.component';
       }
 
       .app-decoration {
-        position: fixed;
+        position: absolute;
         pointer-events: none;
-        z-index: 0;
 
         &.primary {
           top: -50%;
@@ -93,7 +104,7 @@ import { FooterComponent } from './components/footer/footer.component';
       }
 
       .app-pattern {
-        position: fixed;
+        position: absolute;
         top: 0;
         left: 0;
         right: 0;
@@ -106,7 +117,6 @@ import { FooterComponent } from './components/footer/footer.component';
             transparent 1px
           ),
           linear-gradient(to bottom, #569cd6 1px, transparent 1px);
-        z-index: 0;
         pointer-events: none;
       }
 
@@ -115,8 +125,17 @@ import { FooterComponent } from './components/footer/footer.component';
           background: rgba(30, 30, 30, 0.7);
           backdrop-filter: blur(10px);
           border: 1px solid rgba(78, 201, 176, 0.2);
+          border-radius: 8px;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
             0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        app-header,
+        app-footer {
+          position: relative;
+          z-index: 2;
+          background: rgba(30, 30, 30, 0.7);
+          backdrop-filter: blur(10px);
         }
       }
     `,
