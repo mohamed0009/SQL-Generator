@@ -1,187 +1,197 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AlertService } from '../services/alert.service';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+
 declare var Prism: any;
 
 @Component({
   selector: 'app-sql-output',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatSnackBarModule,
+  ],
   template: `
-    <div class="sql-output" *ngIf="sql || error">
-      <div class="card">
-        <div class="card-header">
-          <h3>Generated SQL</h3>
+    <mat-card class="sql-output-card" *ngIf="sql">
+      <mat-card-header>
+        <mat-card-title>Generated SQL</mat-card-title>
+        <div class="header-actions">
+          <button
+            mat-icon-button
+            (click)="copyToClipboard()"
+            matTooltip="Copy to clipboard"
+          >
+            <mat-icon>content_copy</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            (click)="downloadSQL()"
+            matTooltip="Download SQL"
+          >
+            <mat-icon>download</mat-icon>
+          </button>
         </div>
-        <div class="card-content">
-          @if (error) {
-          <div class="alert alert-error">
-            <i class="fas fa-exclamation-circle"></i>
-            {{ error }}
-          </div>
-          } @if (sql) {
-          <div class="sql-container">
-            <pre
-              class="line-numbers"
-            ><code [innerHTML]="highlightedSql" class="language-sql"></code></pre>
-            <button
-              class="copy-button"
-              (click)="copyToClipboard(sql)"
-              [class.copied]="isCopied"
-              [title]="isCopied ? 'Copied!' : 'Copy to clipboard'"
-            >
-              <i
-                class="fas"
-                [class.fa-copy]="!isCopied"
-                [class.fa-check]="isCopied"
-              ></i>
-              <span class="copy-tooltip">{{
-                isCopied ? 'Copied!' : 'Copy'
-              }}</span>
-            </button>
-          </div>
-          }
-        </div>
-      </div>
-    </div>
+      </mat-card-header>
+      <mat-card-content>
+        <pre
+          class="sql-code line-numbers"
+        ><code class="language-sql" [innerHTML]="highlightedSQL"></code></pre>
+      </mat-card-content>
+    </mat-card>
   `,
   styles: [
     `
-      .sql-output {
+      .sql-output-card {
         margin-top: 2rem;
-      }
-
-      .card {
-        background-color: var(--bg-primary);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
+        background: #1e1e1e;
+        color: #d4d4d4;
+        border-radius: 8px;
         overflow: hidden;
       }
 
-      .card-header {
-        padding: 1rem 1.5rem;
-        border-bottom: 1px solid var(--border-color);
-        background-color: var(--bg-secondary);
-
-        h3 {
-          margin: 0;
-          font-size: 1.1rem;
-          font-weight: 500;
-          color: var(--text-primary);
-        }
+      mat-card-header {
+        background: #2d2d2d;
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
 
-      .card-content {
-        padding: 1.5rem;
+      .header-actions {
+        display: flex;
+        gap: 0.5rem;
       }
 
-      .sql-container {
-        position: relative;
-        border-radius: var(--radius);
-        overflow: hidden;
-
-        pre {
-          margin: 0;
-          padding: 1rem !important;
-          background-color: #1e1e1e !important;
-          border-radius: var(--radius);
-          font-family: 'Fira Code', monospace;
-          font-size: 0.9rem;
-          line-height: 1.5;
-        }
-
-        .copy-button {
-          position: absolute;
-          top: 0.75rem;
-          right: 0.75rem;
-          padding: 0.5rem 0.75rem;
-          border-radius: var(--radius);
-          background-color: rgba(255, 255, 255, 0.1);
-          border: none;
-          color: #d4d4d4;
-          cursor: pointer;
-          transition: all var(--transition-fast);
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-
-          i {
-            font-size: 1rem;
-          }
-
-          .copy-tooltip {
-            font-size: 0.85rem;
-            font-weight: 500;
-          }
-
-          &:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-            transform: var(--scale-hover);
-          }
-
-          &:active {
-            transform: var(--scale-active);
-          }
-
-          &.copied {
-            background-color: rgba(34, 197, 94, 0.2);
-            color: #4ade80;
-          }
-        }
+      mat-card-title {
+        color: #fff;
+        margin: 0;
+        font-size: 1.1rem;
       }
 
-      /* Dark mode styles */
-      @media (prefers-color-scheme: dark) {
-        .card-header {
-          background-color: var(--dark-bg-secondary);
-          border-bottom-color: var(--dark-border-color);
-
-          h3 {
-            color: var(--dark-text-primary);
-          }
-        }
+      mat-card-content {
+        padding: 1rem;
+        margin: 0;
       }
 
-      @media (max-width: 640px) {
-        .copy-button .copy-tooltip {
-          display: none;
+      .sql-code {
+        margin: 0 !important;
+        padding: 1rem !important;
+        background: #1e1e1e !important;
+        border-radius: 4px;
+        font-family: 'Fira Code', 'Consolas', monospace !important;
+        font-size: 0.9rem !important;
+        line-height: 1.5 !important;
+        overflow-x: auto;
+      }
+
+      /* Prism.js Line Numbers */
+      .line-numbers .line-numbers-rows {
+        border-right: 1px solid #404040 !important;
+        padding: 1rem 0;
+      }
+
+      /* Scrollbar Styling */
+      .sql-code::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      .sql-code::-webkit-scrollbar-track {
+        background: #1e1e1e;
+      }
+
+      .sql-code::-webkit-scrollbar-thumb {
+        background: #424242;
+        border-radius: 4px;
+      }
+
+      .sql-code::-webkit-scrollbar-thumb:hover {
+        background: #4f4f4f;
+      }
+
+      /* Button Styling */
+      button[mat-icon-button] {
+        color: #d4d4d4;
+      }
+
+      button[mat-icon-button]:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* Token colors for SQL syntax */
+      :host ::ng-deep {
+        .token.keyword {
+          color: #569cd6 !important;
+        }
+        .token.function {
+          color: #dcdcaa !important;
+        }
+        .token.string {
+          color: #ce9178 !important;
+        }
+        .token.number {
+          color: #b5cea8 !important;
+        }
+        .token.operator {
+          color: #d4d4d4 !important;
+        }
+        .token.punctuation {
+          color: #d4d4d4 !important;
+        }
+        .token.comment {
+          color: #6a9955 !important;
         }
       }
     `,
   ],
 })
 export class SqlOutputComponent implements OnChanges {
-  @Input() sql = '';
-  @Input() error = '';
-  highlightedSql = '';
-  isCopied = false;
+  @Input() sql: string = '';
+  highlightedSQL: string = '';
 
-  constructor(private alertService: AlertService) {}
+  constructor(private snackBar: MatSnackBar) {}
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['sql'] && this.sql) {
-      this.highlightedSql = Prism.highlight(
+  ngOnChanges() {
+    if (this.sql) {
+      this.highlightedSQL = Prism.highlight(
         this.sql,
         Prism.languages.sql,
         'sql'
       );
+      // Allow Prism to update line numbers
+      setTimeout(() => {
+        Prism.highlightAll();
+      });
     }
   }
 
-  copyToClipboard(text: string): void {
-    navigator.clipboard
-      .writeText(text)
-      .then(() => {
-        this.isCopied = true;
-        this.alertService.success('SQL copied to clipboard');
-
-        // Reset the copied state after 2 seconds
-        setTimeout(() => {
-          this.isCopied = false;
-        }, 2000);
-      })
-      .catch(() => {
-        this.alertService.error('Failed to copy SQL');
+  copyToClipboard() {
+    navigator.clipboard.writeText(this.sql).then(() => {
+      this.snackBar.open('SQL copied to clipboard', 'Close', {
+        duration: 2000,
+        horizontalPosition: 'end',
+        verticalPosition: 'top',
+        panelClass: ['success-snackbar'],
       });
+    });
+  }
+
+  downloadSQL() {
+    const blob = new Blob([this.sql], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'generated-sql.sql';
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 }

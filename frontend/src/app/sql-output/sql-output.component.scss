@@ -1,1 +1,23 @@
+.sql-output {
+  background: #1e293b;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
 
+  pre {
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-x: auto;
+
+    code {
+      font-family: "Roboto Mono", monospace;
+      color: #e2e8f0;
+    }
+  }
+
+  .error {
+    color: #ef4444;
+    margin-top: 1rem;
+    font-weight: 500;
+  }
+}

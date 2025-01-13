@@ -21,7 +21,7 @@ import org.springframework.http.MediaType;
 
 @RestController
 @RequestMapping("/api/sql")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:4200")
 public class SQLGeneratorController {
 
     @Autowired
@@ -47,7 +47,7 @@ public class SQLGeneratorController {
         }
     }
 
-    @PostMapping("/generate")
+    @PostMapping(value = "/generate", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> generateSQL(@RequestBody TableRequest request) {
         try {
             if (request.getTables() == null || request.getTables().isEmpty()) {
@@ -55,13 +55,13 @@ public class SQLGeneratorController {
             }
 
             String dialect = request.getDialect() != null ? request.getDialect() : "MySQL";
-            System.out.println("Generating SQL for dialect: " + dialect); // Debug log
-            System.out.println("Tables: " + request.getTables()); // Debug log
-
             String sql = generateSQLBasedOnDialect(request.getTables(), dialect);
-            return ResponseEntity.ok(sql);
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(sql);
         } catch (Exception e) {
-            e.printStackTrace(); // Debug log
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
     }

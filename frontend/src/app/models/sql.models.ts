@@ -1,5 +1,5 @@
 export type SQLDialect = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server';
-export type ExportFormat = 'SQL' | 'JSON' | 'TypeScript' | 'Java Entity';
+export type ExportFormat = 'SQL' | 'TypeScript' | 'Java Entity' | 'JSON';
 export type RelationType = 'oneToOne' | 'oneToMany' | 'manyToMany';
 
 export interface TableRelation {
@@ -19,12 +19,12 @@ export interface Table {
 export interface Column {
   name: string;
   type: string;
-  primaryKey: boolean;
-  autoIncrement: boolean;
-  required: boolean;
-  unique: boolean;
-  defaultValue?: string;
-  reference?: string;
+  primaryKey?: boolean;
+  autoIncrement?: boolean;
+  required?: boolean;
+  unique?: boolean;
+  reference?: string | null;
+  defaultValue?: string | null;
 }
 
 export interface SchemaVisualization {
@@ -48,7 +48,17 @@ export interface RelationEdge {
   type: RelationType;
 }
 
-export const columnTemplates = {
+export interface ColumnTemplate {
+  name: string;
+  type: string;
+  primaryKey?: boolean;
+  autoIncrement?: boolean;
+  required?: boolean;
+  unique?: boolean;
+  defaultValue?: string;
+}
+
+export const columnTemplates: Record<string, ColumnTemplate> = {
   id: {
     name: 'id',
     type: 'entier',
@@ -56,24 +66,22 @@ export const columnTemplates = {
     autoIncrement: true,
     required: true,
     unique: true,
-    defaultValue: undefined,
   },
   timestamp: {
     name: 'created_at',
     type: 'date',
+    required: true,
+    defaultValue: 'maintenant',
     primaryKey: false,
     autoIncrement: false,
-    required: true,
     unique: false,
-    defaultValue: 'CURRENT_TIMESTAMP',
   },
   foreignKey: {
-    name: 'foreign_id',
+    name: 'reference_id',
     type: 'entier',
+    required: true,
     primaryKey: false,
     autoIncrement: false,
-    required: true,
     unique: false,
-    defaultValue: undefined,
   },
-} as const;
+};

@@ -1,217 +1,162 @@
 <div class="container">
-  <div class="page-header">
-    <h1 class="title">SQL Generator</h1>
-    <p class="subtitle">Generate SQL tables with a simple form interface</p>
-  </div>
-
   <div class="card">
     <form [formGroup]="sqlForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label class="form-label" for="tableName">Table Name</label>
+      <mat-form-field appearance="outline" class="form-group">
+        <mat-label>Table Name</mat-label>
         <input
-          id="tableName"
-          class="form-control"
+          matInput
           formControlName="tableName"
           required
           placeholder="Enter table name"
         />
-      </div>
+      </mat-form-field>
 
-      <div class="form-group">
-        <label class="form-label" for="dialect">SQL Dialect</label>
-        <select id="dialect" class="form-control" formControlName="dialect">
-          <option value="MySQL">MySQL</option>
-          <option value="PostgreSQL">PostgreSQL</option>
-          <option value="SQLite">SQLite</option>
-          <option value="SQL Server">SQL Server</option>
-        </select>
-      </div>
-
-      <div class="history-controls">
-        <button
-          type="button"
-          class="btn btn-icon"
-          (click)="undo()"
-          [disabled]="!(canUndo$ | async)"
-          title="Undo"
-        >
-          <i class="fas fa-undo"></i>
-        </button>
-        <button
-          type="button"
-          class="btn btn-icon"
-          (click)="redo()"
-          [disabled]="!(canRedo$ | async)"
-          title="Redo"
-        >
-          <i class="fas fa-redo"></i>
-        </button>
-      </div>
+      <mat-form-field appearance="outline" class="form-group">
+        <mat-label>SQL Dialect</mat-label>
+        <mat-select formControlName="dialect" required>
+          <mat-option value="MySQL">MySQL</mat-option>
+          <mat-option value="PostgreSQL">PostgreSQL</mat-option>
+          <mat-option value="SQLite">SQLite</mat-option>
+          <mat-option value="SQL Server">SQL Server</mat-option>
+        </mat-select>
+      </mat-form-field>
 
       <div class="template-buttons">
-        <button
-          type="button"
-          class="btn btn-template"
-          (click)="addTemplateColumn('id')"
-          title="Add ID column"
-        >
-          <i class="fas fa-key"></i>
+        <button mat-stroked-button (click)="addTemplateColumn('id')">
+          <mat-icon>key</mat-icon>
           Add ID
         </button>
-        <button
-          type="button"
-          class="btn btn-template"
-          (click)="addTemplateColumn('timestamp')"
-          title="Add Timestamp column"
-        >
-          <i class="fas fa-clock"></i>
+        <button mat-stroked-button (click)="addTemplateColumn('timestamp')">
+          <mat-icon>schedule</mat-icon>
           Add Timestamp
         </button>
-        <button
-          type="button"
-          class="btn btn-template"
-          (click)="addTemplateColumn('foreignKey')"
-          title="Add Foreign Key"
-        >
-          <i class="fas fa-link"></i>
+        <button mat-stroked-button (click)="addTemplateColumn('foreignKey')">
+          <mat-icon>link</mat-icon>
           Add Foreign Key
         </button>
       </div>
 
-      <div formArrayName="columns" class="space-y-4">
-        <h3 class="text-lg font-medium text-gray-700">Columns</h3>
+      <div formArrayName="columns" class="column-section">
+        <h3>Columns</h3>
 
-        @for (column of columns.controls; track $index) {
-        <div [formGroupName]="$index" class="card" [@columnAnimation]>
-          <div class="column-header">
-            <h4 class="column-title">Column {{ $index + 1 }}</h4>
-            <button
-              type="button"
-              class="remove-column-btn"
-              (click)="removeColumn($index)"
-              title="Remove column"
-            >
-              <i class="fas fa-trash"></i>
-              <span>Remove</span>
-            </button>
-          </div>
+        <ng-container
+          *ngFor="let column of columns.controls; let $index = index"
+        >
+          <div [formGroupName]="$index" class="column-form" [@columnAnimation]>
+            <div class="column-header">
+              <h4>Column {{ $index + 1 }}</h4>
+              <button
+                mat-icon-button
+                color="warn"
+                (click)="removeColumn($index)"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
 
-          <div class="form-group">
-            <label class="form-label">Column Name</label>
-            <input class="form-control" formControlName="name" required />
-          </div>
+            <mat-form-field appearance="outline">
+              <mat-label>Column Name</mat-label>
+              <input matInput formControlName="name" required />
+            </mat-form-field>
 
-          <div class="form-group">
-            <label class="form-label">Type</label>
-            <select class="form-control" formControlName="type" required>
-              <option value="entier">Integer</option>
-              <option value="texte">Text</option>
-              <option value="date">Date</option>
-            </select>
-          </div>
+            <mat-form-field appearance="outline">
+              <mat-label>Type</mat-label>
+              <mat-select formControlName="type" required>
+                <mat-option value="entier">Integer</mat-option>
+                <mat-option value="texte">Text</mat-option>
+                <mat-option value="date">Date</mat-option>
+              </mat-select>
+            </mat-form-field>
 
-          <div class="flex gap-4 flex-wrap">
-            <label class="checkbox-group">
-              <input type="checkbox" formControlName="primaryKey" />
-              <span>Primary Key</span>
-            </label>
-            <label class="checkbox-group">
-              <input type="checkbox" formControlName="autoIncrement" />
-              <span>Auto Increment</span>
-            </label>
-            <label class="checkbox-group">
-              <input type="checkbox" formControlName="required" />
-              <span>Required</span>
-            </label>
-            <label class="checkbox-group">
-              <input type="checkbox" formControlName="unique" />
-              <span>Unique</span>
-            </label>
-          </div>
+            <div class="checkbox-group">
+              <mat-checkbox formControlName="primaryKey"
+                >Primary Key</mat-checkbox
+              >
+              <mat-checkbox formControlName="autoIncrement"
+                >Auto Increment</mat-checkbox
+              >
+              <mat-checkbox formControlName="required">Required</mat-checkbox>
+              <mat-checkbox formControlName="unique">Unique</mat-checkbox>
+            </div>
 
-          <div class="form-group">
-            <label class="form-label">References (table.column)</label>
-            <input
-              class="form-control"
-              formControlName="reference"
-              placeholder="tablename.columnname"
-            />
+            <mat-form-field appearance="outline">
+              <mat-label>References (table.column)</mat-label>
+              <input
+                matInput
+                formControlName="reference"
+                placeholder="tablename.columnname"
+              />
+            </mat-form-field>
           </div>
-        </div>
-        }
+        </ng-container>
       </div>
 
-      <div class="border-t mt-8 py-4">
-        <div class="button-group">
-          <div class="action-buttons">
-            <input
-              type="file"
-              #fileInput
-              accept=".json"
-              (change)="importJson($event)"
-              hidden
-            />
-            <button
-              type="button"
-              class="btn btn-secondary"
-              (click)="fileInput.click()"
-            >
-              <i class="fas fa-upload"></i>
-              Import JSON
-            </button>
-          </div>
-
-          <div class="action-buttons">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              [disabled]="!sqlForm.valid || columns.length === 0"
-              (click)="exportJson()"
-            >
-              <i class="fas fa-download"></i>
-              Export JSON
-            </button>
-            <button
-              type="button"
-              class="btn btn-secondary"
-              [disabled]="!generatedSQL"
-              (click)="exportSql()"
-            >
-              <i class="fas fa-code"></i>
-              Export SQL
-            </button>
-          </div>
+      <div class="button-group">
+        <div class="left-buttons">
+          <input
+            type="file"
+            #fileInput
+            accept=".json"
+            (change)="importJson($event)"
+            hidden
+          />
+          <button mat-stroked-button (click)="fileInput.click()">
+            <mat-icon>upload</mat-icon>
+            Import JSON
+          </button>
+          <button
+            mat-stroked-button
+            [disabled]="!sqlForm.valid || columns.length === 0"
+            (click)="exportJson()"
+          >
+            <mat-icon>download</mat-icon>
+            Export JSON
+          </button>
+          <button
+            mat-stroked-button
+            [disabled]="!generatedSQL"
+            (click)="exportSql()"
+          >
+            <mat-icon>code</mat-icon>
+            Export SQL
+          </button>
         </div>
-      </div>
 
-      <div class="border-t py-4">
-        <div class="button-group">
-          <button type="button" class="btn btn-primary" (click)="addColumn()">
-            <i class="fas fa-plus"></i>
+        <div class="right-buttons">
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            (click)="addColumn()"
+          >
+            <mat-icon>add</mat-icon>
             Add Column
           </button>
           <button
+            mat-raised-button
+            color="primary"
             type="submit"
-            class="btn btn-primary"
             [disabled]="!sqlForm.valid || columns.length === 0 || isLoading"
           >
-            @if (isLoading) {
-            <div class="spinner"></div>
-            } @else {
-            <i class="fas fa-play"></i>
-            Generate SQL }
+            <ng-container *ngIf="isLoading; else generateButton">
+              <mat-spinner diameter="20"></mat-spinner>
+            </ng-container>
+            <ng-template #generateButton>
+              <mat-icon>play_arrow</mat-icon>
+              <span>Generate SQL</span>
+            </ng-template>
           </button>
         </div>
       </div>
 
-      @if (columns.length === 0) {
-      <div class="alert alert-warning">
-        <i class="fas fa-exclamation-triangle"></i>
-        Please add at least one column
-      </div>
-      }
+      <ng-container *ngIf="columns.length === 0">
+        <mat-card class="alert warning">
+          <mat-icon>warning</mat-icon>
+          Please add at least one column
+        </mat-card>
+      </ng-container>
     </form>
   </div>
 
-  <app-sql-output [sql]="generatedSQL" [error]="error"></app-sql-output>
+  <app-sql-output *ngIf="generatedSQL" [sql]="generatedSQL"></app-sql-output>
 </div>
