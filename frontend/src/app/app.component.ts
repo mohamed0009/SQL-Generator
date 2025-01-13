@@ -17,7 +17,8 @@ import { FooterComponent } from './components/footer/footer.component';
         <app-sql-form></app-sql-form>
       </main>
       <app-footer></app-footer>
-      <div class="app-decoration"></div>
+      <div class="app-decoration primary"></div>
+      <div class="app-decoration secondary"></div>
       <div class="app-pattern"></div>
     </div>
   `,
@@ -29,13 +30,13 @@ import { FooterComponent } from './components/footer/footer.component';
         min-height: 100vh;
         position: relative;
         overflow-x: hidden;
+        background: #1e1e1e;
       }
 
       .app-container {
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        background-color: var(--sql-background);
         color: var(--sql-foreground);
         transition: background-color 0.3s ease, color 0.3s ease;
         position: relative;
@@ -59,18 +60,36 @@ import { FooterComponent } from './components/footer/footer.component';
 
       .app-decoration {
         position: fixed;
-        top: -50%;
-        left: -25%;
-        right: -25%;
-        bottom: -50%;
-        background: radial-gradient(
-          circle at center,
-          rgba(99, 102, 241, 0.03) 0%,
-          transparent 70%
-        );
-        transform: rotate(-12deg);
-        z-index: 0;
         pointer-events: none;
+        z-index: 0;
+
+        &.primary {
+          top: -50%;
+          left: -25%;
+          right: -25%;
+          bottom: -50%;
+          background: radial-gradient(
+            circle at center,
+            rgba(78, 201, 176, 0.03) 0%,
+            rgba(86, 156, 214, 0.03) 50%,
+            transparent 70%
+          );
+          transform: rotate(-12deg);
+        }
+
+        &.secondary {
+          top: -50%;
+          left: 25%;
+          right: -75%;
+          bottom: -50%;
+          background: radial-gradient(
+            circle at center,
+            rgba(99, 102, 241, 0.02) 0%,
+            rgba(78, 201, 176, 0.02) 50%,
+            transparent 70%
+          );
+          transform: rotate(15deg);
+        }
       }
 
       .app-pattern {
@@ -79,10 +98,14 @@ import { FooterComponent } from './components/footer/footer.component';
         left: 0;
         right: 0;
         bottom: 0;
-        opacity: 0.03;
+        opacity: 0.02;
         background-size: 50px 50px;
-        background-image: linear-gradient(to right, #333 1px, transparent 1px),
-          linear-gradient(to bottom, #333 1px, transparent 1px);
+        background-image: linear-gradient(
+            to right,
+            #4ec9b0 1px,
+            transparent 1px
+          ),
+          linear-gradient(to bottom, #569cd6 1px, transparent 1px);
         z-index: 0;
         pointer-events: none;
       }
@@ -91,7 +114,7 @@ import { FooterComponent } from './components/footer/footer.component';
         .sql-card {
           background: rgba(30, 30, 30, 0.7);
           backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(78, 201, 176, 0.2);
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
             0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
