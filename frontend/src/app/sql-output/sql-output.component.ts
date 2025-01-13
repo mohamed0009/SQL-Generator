@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { fadeInUp, slideInOut } from '../animations/shared-animations';
 
 declare var Prism: any;
 
@@ -19,8 +20,9 @@ declare var Prism: any;
     MatTooltipModule,
     MatSnackBarModule,
   ],
+  animations: [fadeInUp, slideInOut],
   template: `
-    <mat-card class="sql-output-card" *ngIf="sql">
+    <mat-card class="sql-output-card" *ngIf="sql" @slideInOut>
       <mat-card-header>
         <mat-card-title>Generated SQL</mat-card-title>
         <div class="header-actions">

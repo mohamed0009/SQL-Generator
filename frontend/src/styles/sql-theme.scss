@@ -1,0 +1,55 @@
+:root {
+  // VS Code Dark+ theme colors for SQL
+  --sql-keyword: #569cd6; // SELECT, CREATE, etc
+  --sql-type: #4ec9b0; // INT, VARCHAR, etc
+  --sql-string: #ce9178; // String literals
+  --sql-number: #b5cea8; // Numbers
+  --sql-comment: #6a9955; // Comments
+  --sql-operator: #d4d4d4; // Operators
+  --sql-function: #dcdcaa; // Functions
+  --sql-identifier: #9cdcfe; // Table/Column names
+  --sql-background: #1e1e1e; // Main background
+  --sql-foreground: #d4d4d4; // Main text
+  --sql-line-number: #858585; // Line numbers
+}
+
+.sql-syntax {
+  font-family: "Fira Code", monospace;
+
+  .keyword {
+    color: var(--sql-keyword);
+  }
+  .type {
+    color: var(--sql-type);
+  }
+  .string {
+    color: var(--sql-string);
+  }
+  .number {
+    color: var(--sql-number);
+  }
+  .comment {
+    color: var(--sql-comment);
+  }
+  .operator {
+    color: var(--sql-operator);
+  }
+  .function {
+    color: var(--sql-function);
+  }
+  .identifier {
+    color: var(--sql-identifier);
+  }
+}
+
+.sql-card {
+  background: var(--sql-background);
+  color: var(--sql-foreground);
+  border: 1px solid #2d2d2d;
+  border-radius: 6px;
+
+  .card-header {
+    background: #252526;
+    border-bottom: 1px solid #2d2d2d;
+  }
+}

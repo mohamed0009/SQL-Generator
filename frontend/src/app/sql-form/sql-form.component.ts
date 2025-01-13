@@ -23,7 +23,7 @@ import { finalize } from 'rxjs/operators';
 import { Table, SQLDialect, columnTemplates } from '../models/sql.models';
 import { HistoryService } from '../services/history.service';
 import { Observable } from 'rxjs';
-import { trigger, transition, style, animate } from '@angular/animations';
+import { cardAnimation, listAnimation } from '../animations/shared-animations';
 
 @Component({
   selector: 'app-sql-form',
@@ -43,23 +43,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
   ],
   templateUrl: './sql-form.component.html',
   styleUrls: ['./sql-form.component.scss'],
-  animations: [
-    trigger('columnAnimation', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(-20px)' }),
-        animate(
-          '200ms ease-out',
-          style({ opacity: 1, transform: 'translateY(0)' })
-        ),
-      ]),
-      transition(':leave', [
-        animate(
-          '200ms ease-in',
-          style({ opacity: 0, transform: 'translateY(-20px)' })
-        ),
-      ]),
-    ]),
-  ],
+  animations: [cardAnimation, listAnimation],
 })
 export class SqlFormComponent {
   sqlForm!: FormGroup;

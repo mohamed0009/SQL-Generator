@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container" @cardAnimation>
   <div class="card">
     <form [formGroup]="sqlForm" (ngSubmit)="onSubmit()">
       <mat-form-field appearance="outline" class="form-group">
@@ -36,7 +36,7 @@
         </button>
       </div>
 
-      <div formArrayName="columns" class="column-section">
+      <div formArrayName="columns" class="column-section" @listAnimation>
         <h3>Columns</h3>
 
         <ng-container
