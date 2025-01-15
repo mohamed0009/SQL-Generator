@@ -1,20 +1,21 @@
 :root {
-  // VS Code Dark+ theme colors for SQL
-  --sql-keyword: #569cd6; // SELECT, CREATE, etc
-  --sql-type: #4ec9b0; // INT, VARCHAR, etc
-  --sql-string: #ce9178; // String literals
-  --sql-number: #b5cea8; // Numbers
-  --sql-comment: #6a9955; // Comments
-  --sql-operator: #d4d4d4; // Operators
-  --sql-function: #dcdcaa; // Functions
-  --sql-identifier: #9cdcfe; // Table/Column names
-  --sql-background: #1e1e1e; // Main background
-  --sql-foreground: #d4d4d4; // Main text
-  --sql-line-number: #858585; // Line numbers
+  // Light theme colors for SQL
+  --sql-keyword: #0066cc; // Bright blue for keywords
+  --sql-type: #008066; // Teal for types
+  --sql-string: #a31515; // Dark red for strings
+  --sql-number: #098658; // Green for numbers
+  --sql-comment: #507e50; // Muted green for comments
+  --sql-operator: #444444; // Dark gray for operators
+  --sql-function: #795e26; // Brown for functions
+  --sql-identifier: #267f99; // Blue-green for identifiers
+  --sql-background: #ffffff; // White background
+  --sql-foreground: #333333; // Dark gray text
+  --sql-line-number: #666666; // Medium gray for line numbers
 }
 
 .sql-syntax {
   font-family: "Fira Code", monospace;
+  background-color: rgba(255, 255, 255, 0.95);
 
   .keyword {
     color: var(--sql-keyword);

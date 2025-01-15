@@ -101,12 +101,12 @@ import {
   styles: [
     `
       .app-header {
-        background: #1e1e1e;
+        background: rgba(255, 255, 255, 0.95);
         padding: 4rem 2rem;
         text-align: center;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         font-family: 'Fira Code', monospace;
 
         @media (max-width: 768px) {

@@ -144,15 +144,14 @@ import {
   styles: [
     `
       .sql-footer.sql-card {
-        background: rgba(30, 30, 30, 0.95) !important;
+        background: rgba(255, 255, 255, 0.95) !important;
         backdrop-filter: blur(10px);
         padding: 1.5rem;
         font-family: 'Fira Code', monospace;
-        border-top: 1px solid rgba(78, 201, 176, 0.2);
+        border-top: 1px solid rgba(0, 128, 102, 0.2);
         position: relative;
         overflow: hidden;
-        box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.2),
-          0 -2px 4px -1px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
       }
 
       .sql-footer .footer-content {

@@ -32,7 +32,7 @@ import { FooterComponent } from './components/footer/footer.component';
         min-height: 100vh;
         position: relative;
         overflow-x: hidden;
-        background: #1e1e1e;
+        background: #f8f9fa;
       }
 
       .app-container {
@@ -122,9 +122,9 @@ import { FooterComponent } from './components/footer/footer.component';
 
       ::ng-deep {
         .sql-card {
-          background: rgba(30, 30, 30, 0.7);
+          background: rgba(255, 255, 255, 0.9);
           backdrop-filter: blur(10px);
-          border: 1px solid rgba(78, 201, 176, 0.2);
+          border: 1px solid rgba(0, 128, 102, 0.2);
           border-radius: 8px;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
             0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -134,7 +134,7 @@ import { FooterComponent } from './components/footer/footer.component';
         app-footer {
           position: relative;
           z-index: 2;
-          background: rgba(30, 30, 30, 0.7);
+          background: rgba(255, 255, 255, 0.9);
           backdrop-filter: blur(10px);
         }
       }
