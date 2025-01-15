@@ -1,29 +1,26 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
   FormGroup,
   FormArray,
-  Validators,
   ReactiveFormsModule,
+  Validators,
 } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { SqlGeneratorService } from '../services/sql-generator.service';
-import { AlertService } from '../services/alert.service';
+import { MatCardModule } from '@angular/material/card';
 import { SqlOutputComponent } from '../sql-output/sql-output.component';
-import { finalize } from 'rxjs/operators';
-import { Table, SQLDialect, columnTemplates } from '../models/sql.models';
-import { HistoryService } from '../services/history.service';
-import { Observable } from 'rxjs';
+import { FileInputComponent } from '../components/file-input/file-input.component';
+import { SqlGeneratorService } from '../services/sql-generator.service';
+import { Table, Column } from '../models/sql.models';
 import { cardAnimation, listAnimation } from '../animations/shared-animations';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-sql-form',
@@ -31,285 +28,185 @@ import { cardAnimation, listAnimation } from '../animations/shared-animations';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    MatButtonModule,
+    MatIconModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatButtonModule,
-    MatIconModule,
     MatCheckboxModule,
-    MatCardModule,
     MatProgressSpinnerModule,
+    MatCardModule,
     SqlOutputComponent,
+    FileInputComponent,
   ],
   templateUrl: './sql-form.component.html',
   styleUrls: ['./sql-form.component.scss'],
   animations: [cardAnimation, listAnimation],
 })
-export class SqlFormComponent {
+export class SqlFormComponent implements OnInit {
   sqlForm!: FormGroup;
   isLoading = false;
-  generatedSQL = '';
-  error = '';
-  canUndo$: Observable<boolean>;
-  canRedo$: Observable<boolean>;
+  generatedSQL: string = '';
+  currentTableIndex = 0;
 
   constructor(
     private fb: FormBuilder,
     private sqlService: SqlGeneratorService,
-    private alertService: AlertService,
-    private historyService: HistoryService,
     private snackBar: MatSnackBar
-  ) {
+  ) {}
+
+  ngOnInit(): void {
     this.initForm();
-    this.canUndo$ = this.historyService.canUndo$;
-    this.canRedo$ = this.historyService.canRedo$;
   }
 
   private initForm(): void {
     this.sqlForm = this.fb.group({
-      tableName: ['', Validators.required],
-      dialect: ['MySQL', Validators.required],
-      columns: this.fb.array([]),
+      tables: this.fb.array([]),
     });
   }
 
-  get columns(): FormArray {
-    return this.sqlForm.get('columns') as FormArray;
+  get tables(): FormArray {
+    return this.sqlForm.get('tables') as FormArray;
   }
 
-  protected addColumn(): void {
-    const column = this.fb.group({
+  getColumns(tableIndex: number): FormArray {
+    return this.tables.at(tableIndex).get('columns') as FormArray;
+  }
+
+  addTable(): void {
+    const tableGroup = this.fb.group({
+      tableName: ['', Validators.required],
+      columns: this.fb.array([]),
+    });
+    this.tables.push(tableGroup);
+  }
+
+  removeTable(index: number): void {
+    this.tables.removeAt(index);
+  }
+
+  addColumnToTable(tableIndex: number): void {
+    const columns = this.getColumns(tableIndex);
+    const columnGroup = this.fb.group({
       name: ['', Validators.required],
-      type: ['entier', Validators.required],
+      type: ['', Validators.required],
       primaryKey: [false],
       autoIncrement: [false],
       required: [false],
       unique: [false],
       reference: [''],
     });
-    this.columns.push(column);
+    columns.push(columnGroup);
   }
 
-  protected removeColumn(index: number): void {
-    this.columns.removeAt(index);
+  removeColumnFromTable(tableIndex: number, columnIndex: number): void {
+    const columns = this.getColumns(tableIndex);
+    columns.removeAt(columnIndex);
   }
 
-  protected addTemplateColumn(type: keyof typeof columnTemplates): void {
-    const template = columnTemplates[type];
-    const column = this.fb.group({
-      name: [template.name, Validators.required],
-      type: [template.type, Validators.required],
-      primaryKey: [template.primaryKey ?? false],
-      autoIncrement: [template.autoIncrement ?? false],
-      required: [template.required ?? false],
-      unique: [template.unique ?? false],
-      reference: [''],
-    });
-    this.columns.push(column);
-  }
-
-  protected onSubmit(): void {
-    if (this.sqlForm.valid && this.columns.length > 0) {
-      const tables: Table[] = [
-        {
-          name: this.sqlForm.get('tableName')?.value,
-          columns: this.columns.value.map((col: any) => ({
-            name: col.name,
-            type: col.type,
-            primaryKey: !!col.primaryKey,
-            autoIncrement: !!col.autoIncrement,
-            required: !!col.required,
-            unique: !!col.unique,
-            reference: col.reference || null,
-            defaultValue: col.defaultValue || null,
-          })),
-        },
-      ];
-
-      const dialect: SQLDialect = this.sqlForm.get('dialect')?.value;
-
+  onFileUploaded(event: { content: string; type: 'text' | 'json' }): void {
+    try {
       this.isLoading = true;
-      this.error = '';
-      console.log('Submitting tables:', tables);
+      let tables: Table[];
 
-      this.sqlService
-        .generateSQL(tables, dialect)
-        .pipe(finalize(() => (this.isLoading = false)))
-        .subscribe({
-          next: (sql) => {
-            console.log('Generated SQL:', sql);
-            this.generatedSQL = sql;
-            this.snackBar.open('SQL generated successfully!', 'Close', {
-              duration: 3000,
-              panelClass: ['success-snackbar'],
-            });
-          },
-          error: (err) => {
-            console.error('SQL Generation Error:', err);
-            this.error = err.message || 'Failed to generate SQL';
-            this.snackBar.open(this.error, 'Close', {
-              duration: 3000,
-              panelClass: ['error-snackbar'],
-            });
-          },
-        });
-    } else {
-      this.snackBar.open(
-        'Please fill in all required fields and add at least one column',
-        'Close',
-        {
-          duration: 3000,
-          panelClass: ['error-snackbar'],
-        }
-      );
-    }
-  }
-
-  protected importJson(event: any): void {
-    const file = event.target.files[0];
-    if (!file) {
-      this.snackBar.open('No file selected', 'Close', {
-        duration: 3000,
-        panelClass: ['error-snackbar'],
-      });
-      return;
-    }
-
-    if (!file.name.toLowerCase().endsWith('.json')) {
-      this.snackBar.open('Please select a JSON file', 'Close', {
-        duration: 3000,
-        panelClass: ['error-snackbar'],
-      });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const json = JSON.parse(e.target?.result as string);
-        console.log('Parsed JSON:', json);
-
-        // Check if it's a tables array structure
-        if (!Array.isArray(json.tables) || json.tables.length === 0) {
-          throw new Error('No tables found in JSON');
-        }
-
-        // Get the first table (or you could add UI to let user choose which table to import)
-        const table = json.tables[0];
-
-        if (!table.name || !Array.isArray(table.columns)) {
-          throw new Error('Invalid table structure');
-        }
-
-        // Reset form with the table data
-        this.sqlForm.patchValue({
-          tableName: table.name,
-          dialect: json.dialect || 'MySQL',
-        });
-
-        // Clear existing columns
-        while (this.columns.length) {
-          this.columns.removeAt(0);
-        }
-
-        // Add columns from JSON
-        table.columns.forEach((column: any) => {
-          if (!column.name || !column.type) {
-            throw new Error('Column missing required fields');
-          }
-
-          this.columns.push(
-            this.fb.group({
-              name: [column.name, Validators.required],
-              type: [column.type, Validators.required],
-              primaryKey: [!!column.primaryKey],
-              autoIncrement: [!!column.autoIncrement],
-              required: [!!column.required],
-              unique: [!!column.unique],
-              reference: [column.reference || ''],
-            })
-          );
-        });
-
-        this.snackBar.open('JSON imported successfully', 'Close', {
-          duration: 3000,
-          horizontalPosition: 'end',
-          verticalPosition: 'top',
-          panelClass: ['success-snackbar'],
-        });
-      } catch (error) {
-        console.error('Import error:', error);
-        this.snackBar.open(
-          `Invalid JSON format: ${
-            error instanceof Error ? error.message : 'Unknown error'
-          }`,
-          'Close',
-          {
-            duration: 5000,
-            horizontalPosition: 'end',
-            verticalPosition: 'top',
-            panelClass: ['error-snackbar'],
-          }
-        );
+      if (event.type === 'json') {
+        // Parse JSON and handle the tables array structure
+        const jsonData = JSON.parse(event.content);
+        tables = jsonData.tables || []; // Extract tables array from the JSON
+      } else {
+        tables = this.sqlService.parseTextInput(event.content);
       }
-    };
 
-    reader.readAsText(file);
-  }
+      // Clear existing tables
+      while (this.tables.length) {
+        this.tables.removeAt(0);
+      }
 
-  protected exportJson(): void {
-    const formValue = this.sqlForm.value;
-    const jsonData = {
-      tableName: formValue.tableName,
-      dialect: formValue.dialect,
-      columns: formValue.columns,
-    };
+      // Add tables from the imported file
+      tables.forEach((table) => {
+        const tableGroup = this.fb.group({
+          tableName: [table.name, Validators.required],
+          columns: this.fb.array([]),
+        });
 
-    const blob = new Blob([JSON.stringify(jsonData, null, 2)], {
-      type: 'application/json',
-    });
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${formValue.tableName}_schema.json`;
-    link.click();
-    window.URL.revokeObjectURL(url);
-  }
+        const columnsArray = tableGroup.get('columns') as FormArray;
 
-  protected exportSql(): void {
-    if (this.generatedSQL) {
-      const blob = new Blob([this.generatedSQL], { type: 'text/plain' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${this.sqlForm.get('tableName')?.value}_schema.sql`;
-      link.click();
-      window.URL.revokeObjectURL(url);
+        // Add each column to the form array
+        if (Array.isArray(table.columns)) {
+          table.columns.forEach((column) => {
+            const columnGroup = this.fb.group({
+              name: [column.name, Validators.required],
+              type: [
+                this.sqlService.mapTypeToSQL(column.type),
+                Validators.required,
+              ],
+              primaryKey: [column.primaryKey || false],
+              autoIncrement: [column.autoIncrement || false],
+              required: [column.required || false],
+              unique: [column.unique || false],
+              reference: [column.reference || ''],
+              defaultValue: [column.defaultValue || ''],
+            });
+            columnsArray.push(columnGroup);
+          });
+        }
+
+        this.tables.push(tableGroup);
+      });
+
+      // Generate SQL
+      this.sqlService.generateSQL(tables).subscribe({
+        next: (sql: string) => {
+          this.generatedSQL = sql;
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error generating SQL:', error);
+          this.isLoading = false;
+          this.snackBar.open('Error generating SQL', 'Close', {
+            duration: 3000,
+            panelClass: ['error-snackbar'],
+          });
+        },
+      });
+    } catch (error) {
+      console.error('Error processing file:', error);
+      this.isLoading = false;
+      this.snackBar.open('Error processing file', 'Close', {
+        duration: 3000,
+        panelClass: ['error-snackbar'],
+      });
     }
   }
 
-  protected undo(): void {
-    const previousState = this.historyService.undo();
-    if (previousState) {
-      this.updateFormState(previousState);
-    }
-  }
+  onSubmit(): void {
+    if (this.sqlForm.valid && this.tables.length > 0) {
+      this.isLoading = true;
+      const formData = this.sqlForm.value;
 
-  protected redo(): void {
-    const nextState = this.historyService.redo();
-    if (nextState) {
-      this.updateFormState(nextState);
-    }
-  }
+      const tables: Table[] = formData.tables.map((table: any) => ({
+        name: table.tableName,
+        columns: table.columns.map((col: any) => ({
+          name: col.name,
+          type: col.type,
+          primaryKey: col.primaryKey,
+          autoIncrement: col.autoIncrement,
+          required: col.required,
+          unique: col.unique,
+          reference: col.reference || null,
+        })),
+      }));
 
-  private updateFormState(state: any): void {
-    this.sqlForm.patchValue({
-      tableName: state.tableName,
-      dialect: state.dialect,
-    });
-    this.columns.clear();
-    state.columns.forEach((column: any) => {
-      this.columns.push(this.fb.group(column));
-    });
+      this.sqlService.generateSQL(tables).subscribe({
+        next: (sql: string) => {
+          this.generatedSQL = sql;
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Error generating SQL:', error);
+          this.isLoading = false;
+        },
+      });
+    }
   }
 }

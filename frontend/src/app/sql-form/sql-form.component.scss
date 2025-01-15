@@ -143,3 +143,33 @@
     font-size: 1.25rem;
   }
 }
+
+.table-section {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  border: 1px solid #e5e7eb;
+
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+
+    h3 {
+      margin: 0;
+      color: #111827;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+  }
+}
+
+.sql-output-section {
+  margin-top: 2rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}

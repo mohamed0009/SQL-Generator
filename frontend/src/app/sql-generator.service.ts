@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { Table, SQLDialect, ExportFormat } from './models/sql.models';
+import { catchError, map } from 'rxjs/operators';
+import { Table, Column } from './models/sql.models';
 
 @Injectable({
   providedIn: 'root',
@@ -12,107 +12,104 @@ export class SqlGeneratorService {
 
   constructor(private http: HttpClient) {}
 
-  generateSQL(
-    tables: Table[],
-    dialect: SQLDialect = 'MySQL'
-  ): Observable<string> {
+  parseTextInput(text: string): Table[] {
+    const lines = text.split('\n').map((line) => line.trim());
+    const tables: Table[] = [];
+    let currentTable: Table | null = null;
+
+    for (const line of lines) {
+      if (line.startsWith('table ')) {
+        // New table definition
+        if (currentTable) {
+          tables.push(currentTable);
+        }
+        const tableName = line.replace('table ', '').replace(':', '').trim();
+        currentTable = {
+          name: tableName,
+          columns: [],
+        };
+      } else if (line.startsWith('-') && currentTable) {
+        // Column definition
+        const columnDef = line.substring(1).trim();
+        const column = this.parseColumnDefinition(columnDef);
+        if (column) {
+          currentTable.columns.push(column);
+        }
+      }
+    }
+
+    if (currentTable) {
+      tables.push(currentTable);
+    }
+
+    return tables;
+  }
+
+  private parseColumnDefinition(def: string): Column | null {
+    // Match pattern: name (type, constraints)
+    const match = def.match(/(\w+)\s*\(([^)]+)\)/);
+    if (!match) return null;
+
+    const name = match[1];
+    const specs = match[2].split(',').map((s) => s.trim().toLowerCase());
+
+    const column: Column = {
+      name,
+      type: this.mapTypeToSQL(specs[0]),
+      primaryKey: specs.includes('clé primaire'),
+      autoIncrement: specs.includes('auto'),
+      required: specs.includes('requis'),
+      unique: specs.includes('unique'),
+      defaultValue: this.extractDefaultValue(specs),
+    };
+
+    return column;
+  }
+
+  private mapTypeToSQL(type: string): string {
+    const typeMap: { [key: string]: string } = {
+      entier: 'INT',
+      texte: 'VARCHAR(255)',
+      date: 'DATETIME',
+    };
+    return typeMap[type] || type.toUpperCase();
+  }
+
+  private extractDefaultValue(specs: string[]): string | null {
+    const defaultSpec = specs.find((s) => s.startsWith('par défaut:'));
+    if (defaultSpec) {
+      return defaultSpec.split(':')[1].trim();
+    }
+    return null;
+  }
+
+  generateSQLFromText(text: string): Observable<string> {
+    const tables = this.parseTextInput(text);
+    return this.generateSQL(tables);
+  }
+
+  generateSQL(tables: Table[]): Observable<string> {
     return this.http
       .post<string>(
         `${this.apiUrl}/generate`,
-        { tables, dialect },
-        {
-          responseType: 'text' as 'json',
-        }
+        { tables },
+        { responseType: 'text' as 'json' }
       )
       .pipe(catchError(this.handleError));
   }
 
-  exportAs(tables: Table[], format: ExportFormat): string {
-    switch (format) {
-      case 'TypeScript':
-        return this.generateTypeScript(tables);
-      case 'Java Entity':
-        return this.generateJavaEntity(tables);
-      case 'JSON':
-        return JSON.stringify(tables, null, 2);
-      default:
-        return '';
-    }
+  downloadSQL(sql: string, filename: string = 'generated-sql.sql'): void {
+    const blob = new Blob([sql], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 
-  private generateTypeScript(tables: Table[]): string {
-    let output = '';
-    tables.forEach((table) => {
-      output += `interface ${this.pascalCase(table.name)} {\n`;
-      table.columns.forEach((column) => {
-        const type = this.mapSqlTypeToTs(column.type);
-        output += `  ${column.name}${column.required ? '' : '?'}: ${type};\n`;
-      });
-      output += '}\n\n';
-    });
-    return output;
-  }
-
-  private generateJavaEntity(tables: Table[]): string {
-    let output = '';
-    tables.forEach((table) => {
-      output += `@Entity\n@Table(name = "${table.name}")\n`;
-      output += `public class ${this.pascalCase(table.name)} {\n\n`;
-      table.columns.forEach((column) => {
-        if (column.primaryKey) {
-          output += '  @Id\n';
-        }
-        if (column.autoIncrement) {
-          output += '  @GeneratedValue(strategy = GenerationType.IDENTITY)\n';
-        }
-        const type = this.mapSqlTypeToJava(column.type);
-        output += `  private ${type} ${column.name};\n\n`;
-      });
-      output += '}\n\n';
-    });
-    return output;
-  }
-
-  private handleError(error: HttpErrorResponse) {
-    let errorMessage = 'An error occurred';
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = `Error: ${error.error.message}`;
-    } else {
-      errorMessage = `Server returned code ${error.status}, error: ${error.error}`;
-    }
-    return throwError(() => errorMessage);
-  }
-
-  private pascalCase(str: string): string {
-    return str
-      .split('_')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join('');
-  }
-
-  private mapSqlTypeToTs(sqlType: string): string {
-    switch (sqlType.toLowerCase()) {
-      case 'entier':
-        return 'number';
-      case 'texte':
-        return 'string';
-      case 'date':
-        return 'Date';
-      default:
-        return 'any';
-    }
-  }
-
-  private mapSqlTypeToJava(sqlType: string): string {
-    switch (sqlType.toLowerCase()) {
-      case 'entier':
-        return 'Integer';
-      case 'texte':
-        return 'String';
-      case 'date':
-        return 'LocalDateTime';
-      default:
-        return 'Object';
-    }
+  private handleError(error: any) {
+    console.error('An error occurred:', error);
+    return throwError(() => 'Error generating SQL: ' + error.message);
   }
 }
