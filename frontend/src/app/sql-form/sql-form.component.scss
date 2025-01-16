@@ -1,7 +1,24 @@
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+.form-container {
+  opacity: 0;
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: all 0.5s ease-out;
+
+  &.show {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+
+  .container {
+    position: relative;
+    z-index: 2;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
 }
 
 .card {
@@ -11,6 +28,8 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
 
   &:hover {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),

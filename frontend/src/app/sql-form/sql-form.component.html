@@ -1,5 +1,5 @@
-<div class="container" @cardAnimation>
-  <div class="card">
+<div class="form-container" [class.show]="showForm" @slideInForm>
+  <div class="container" @cardAnimation>
     <form [formGroup]="sqlForm" (ngSubmit)="onSubmit()">
       <div class="file-upload-section">
         <app-file-input (fileContent)="onFileUploaded($event)"></app-file-input>

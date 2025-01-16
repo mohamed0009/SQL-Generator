@@ -98,3 +98,20 @@ export const bounceAnimation = trigger('bounceAnimation', [
     ),
   ]),
 ]);
+
+export const slideInForm = trigger('slideInForm', [
+  transition(':enter', [
+    style({
+      transform: 'scaleY(0)',
+      transformOrigin: 'top',
+      opacity: 0,
+    }),
+    animate(
+      '0.5s ease-out',
+      style({
+        transform: 'scaleY(1)',
+        opacity: 1,
+      })
+    ),
+  ]),
+]);

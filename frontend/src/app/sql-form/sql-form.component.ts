@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -19,7 +19,11 @@ import { SqlOutputComponent } from '../sql-output/sql-output.component';
 import { FileInputComponent } from '../components/file-input/file-input.component';
 import { SqlGeneratorService } from '../services/sql-generator.service';
 import { Table, Column } from '../models/sql.models';
-import { cardAnimation, listAnimation } from '../animations/shared-animations';
+import {
+  cardAnimation,
+  listAnimation,
+  slideInForm,
+} from '../animations/shared-animations';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
@@ -41,9 +45,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   ],
   templateUrl: './sql-form.component.html',
   styleUrls: ['./sql-form.component.scss'],
-  animations: [cardAnimation, listAnimation],
+  animations: [cardAnimation, listAnimation, slideInForm],
 })
 export class SqlFormComponent implements OnInit {
+  @Input() showForm = false;
+  @Output() formReady = new EventEmitter<void>();
+
   sqlForm!: FormGroup;
   isLoading = false;
   generatedSQL: string = '';
@@ -57,6 +64,7 @@ export class SqlFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
+    this.formReady.emit();
   }
 
   private initForm(): void {

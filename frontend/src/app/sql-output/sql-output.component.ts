@@ -7,6 +7,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SqlGeneratorService } from '../services/sql-generator.service';
 import { Table } from '../models/sql.models';
+import { fadeInUp } from '../animations/shared-animations';
 
 @Component({
   selector: 'app-sql-output',
@@ -19,7 +20,7 @@ import { Table } from '../models/sql.models';
     MatTooltipModule,
   ],
   template: `
-    <mat-card class="sql-output-card">
+    <mat-card class="sql-output-card" @fadeInUp>
       <mat-card-header>
         <mat-card-title>Generated SQL</mat-card-title>
         <div class="header-actions">
@@ -92,6 +93,7 @@ import { Table } from '../models/sql.models';
       }
     `,
   ],
+  animations: [fadeInUp],
 })
 export class SqlOutputComponent {
   @Input() sql: string = '';
